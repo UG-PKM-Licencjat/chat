@@ -11,11 +11,15 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "fastify": "^4.26.2"
+    "@fastify/websocket": "^9.0.0",
+    "dotenv": "^16.4.5",
+    "fastify": "^4.26.2",
+    "mongoose": "^8.2.1"
   },
   "devDependencies": {
     "@tsconfig/node20": "^20.1.2",
     "@types/node": "^20.11.25",
+    "@types/ws": "^8.5.10",
     "@typescript-eslint/eslint-plugin": "^7.1.1",
     "@typescript-eslint/parser": "^7.1.1",
     "eslint": "^8.57.0",
