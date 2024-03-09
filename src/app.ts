@@ -1,13 +1,15 @@
 import fastify from "fastify";
 import dotenv from "dotenv";
+import mongoose from "mongoose";
+import routes from "./routes.js";
 
 dotenv.config();
 
 const server = fastify();
 
-server.get("/ping", async (request, reply) => {
-  return process.env.TEST;
-});
+await mongoose.connect(process.env.CONNECTION_STRING!);
+
+server.register(routes);
 
 server.listen({ port: 8080 }, (err, address) => {
   if (err) {
