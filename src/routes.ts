@@ -1,10 +1,8 @@
 import { FastifyInstance } from "fastify";
+import chatRoutes from "./chat/chat-routes.js";
 
-// routes from all submodules should be registered here (fastify.register, not via .get like here)
 async function routes(fastify: FastifyInstance) {
-  fastify.get("/", async (request, reply) => {
-    return { hello: "world" };
-  });
+  fastify.register(chatRoutes);
 }
 
 export default routes;
