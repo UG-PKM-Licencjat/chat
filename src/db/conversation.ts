@@ -1,9 +1,14 @@
 import mongoose, { model } from "mongoose";
-import { IConversation } from "./db.types.js";
+import { IMessage } from "./db.types.js";
 
-const conversationSchema = new mongoose.Schema<IConversation>({});
+const messageSchema = new mongoose.Schema<IMessage>({
+  _id: { type: "ObjectID", required: true },
+  from: { type: String, required: true },
+  to: { type: String, required: true },
+  timestamp: { type: Date, required: true },
+  message: { type: String, required: true },
+});
 
-export const Conversation = model<IConversation>(
-  "Conversation",
-  conversationSchema
-);
+messageSchema.index({ from: 1, to: 1 }, { unique: false });
+
+export const Message = model<IMessage>("Messages", messageSchema);
