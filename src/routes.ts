@@ -1,8 +1,8 @@
 import { FastifyInstance } from "fastify";
-import chatRoutes from "./chat/chat-routes.js";
+import { handleWs } from "./ws-handler.js";
 
 async function routes(fastify: FastifyInstance) {
-  fastify.register(chatRoutes);
+  fastify.get("/connect", { websocket: true }, handleWs);
 }
 
 export default routes;
