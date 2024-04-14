@@ -7,6 +7,7 @@ export function handleWs(connection: SocketStream, request: FastifyRequest) {
 
   socket.on("connect", (message) => {
     socket.send("User connected");
+    GlobalUserStateHandler.addUser({ id: "placeholder_id", socket: socket });
   });
 
   socket.on("close", () => {
