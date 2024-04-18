@@ -28,9 +28,6 @@ export async function getMessages(
   reply.send({ messages });
 }
 
-// This is probably wrong
-// Also is this needed?
-
 export async function getMessage(
   request: MessageGetRequest,
   reply: FastifyReply
@@ -44,7 +41,7 @@ export async function getMessage(
     message: { $regex: search, $options: "i" },
     from,
     to,
-  });
+  }).sort({ timestamp: 1 });
   console.log(messages);
   const stripped = messages.map((message) => ({
     message: message.message,
