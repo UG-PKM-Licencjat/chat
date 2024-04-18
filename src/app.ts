@@ -9,7 +9,7 @@ dotenv.config();
 
 const server = fastify();
 
-//await mongoose.connect(process.env.CONNECTION_STRING!);
+await mongoose.connect(process.env.CONNECTION_STRING!);
 
 server.register(fastifyWebsocket, {
   errorHandler: function (error, socket, req, reply) {
