@@ -18,7 +18,8 @@ server.register(fastifyWebsocket, {
   options: {
     maxPayload: 1048576,
     verifyClient: function (info, next) {
-      if (info.req.headers["x-fastify-header"] !== "test") {
+      if (info.req.headers["x-fastify-header"] !== null) {
+        // TODO make it authed later
         // auth
         return next(false);
       }

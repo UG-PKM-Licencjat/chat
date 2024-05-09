@@ -1,5 +1,7 @@
 import { FastifyReply, FastifyRequest } from "fastify";
 import { Message } from "./db/message.js";
+import { GlobalUserStateHandler } from "./user-state/user-state-handler.js";
+import { IMessage } from "./db/db.types.js";
 
 type MessagesGetRequest = FastifyRequest<{
   Querystring: { from: string; to: string };
@@ -67,5 +69,16 @@ export async function postMessage(
   const timestamp = new Date().toISOString();
   const newMessage = new Message({ message, from, to, timestamp });
   await newMessage.save();
+
+  if (GlobalUserStateHandler.checkIfUserExsists(to)) {
+    const date = new Date(timestamp);
+    GlobalUserStateHandler.updateUserWithNewMessage(to, {
+      from,
+      to,
+      timestamp: date,
+      message,
+    } satisfies IMessage);
+  }
+
   reply.send({ message: newMessage });
 }
