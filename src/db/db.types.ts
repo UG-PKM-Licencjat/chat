@@ -1,6 +1,6 @@
 export interface IMessage {
   from: string;
   to: string;
-  timestamp: Date;
+  timestamp: string;
   message: string;
 }
