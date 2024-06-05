@@ -30,8 +30,9 @@ server.register(fastifyWebsocket, {
 server.register(routes);
 
 const port = process.env.PORT ? parseInt(process.env.PORT) : 8080;
+const host = process.env.HOST ? process.env.HOST : "0.0.0.0";
 
-server.listen({ port: port }, (err, address) => {
+server.listen({ port: port, host: host }, (err, address) => {
   if (err) {
     console.error(err);
     process.exit(1);
