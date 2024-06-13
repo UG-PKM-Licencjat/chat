@@ -4,12 +4,15 @@ import mongoose from "mongoose";
 import routes from "./routes.js";
 import "@fastify/websocket";
 import fastifyWebsocket from "@fastify/websocket";
+import cors from "@fastify/cors";
 
 dotenv.config();
 
 const server = fastify();
 
 await mongoose.connect(process.env.CONNECTION_STRING!);
+
+server.register(cors);
 
 server.register(fastifyWebsocket, {
   errorHandler: function (error, socket, req, reply) {
