@@ -68,6 +68,11 @@ export async function postMessage(
   const timestamp = new Date().toISOString();
   const newMessage = new Message({ message, from, to, timestamp });
   await newMessage.save();
-  GlobalUserStateHandler.updateUserWithNewMessage(to, newMessage);
-  reply.send({ message: newMessage });
+  GlobalUserStateHandler.updateUserWithNewMessage(to, {
+    message,
+    from,
+    to,
+    timestamp,
+  });
+  reply.send({ message: { message, from, to, timestamp } });
 }
