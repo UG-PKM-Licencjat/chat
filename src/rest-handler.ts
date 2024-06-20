@@ -4,7 +4,7 @@ import { GlobalUserStateHandler } from "./user-state/user-state-handler.js";
 import { IMessage } from "./db/db.types.js";
 
 type MessagesGetRequest = FastifyRequest<{
-  Querystring: { from: string; to: string };
+  Querystring: { userA: string; userB: string };
 }>;
 
 type MessageGetRequest = FastifyRequest<{
@@ -16,44 +16,18 @@ export async function getMessages(
   request: MessagesGetRequest,
   reply: FastifyReply
 ) {
-  const { from, to } = request.query;
-  if (!from || !to) {
+  const { userA, userB } = request.query;
+  if (!userA || !userB) {
     reply.code(400).send({ error: "Bad request" });
     return;
   }
   const messages = await Message.find({
     $or: [
-      { from, to },
-      { from: to, to: from },
+      { from: userA, to: userB },
+      { from: userB, to: userA },
     ],
   }).sort({ timestamp: 1 });
   reply.send({ messages });
-}
-
-export async function getMessage(
-  request: MessageGetRequest,
-  reply: FastifyReply
-) {
-  const { search, from, to } = request.query;
-  if (!search || !from || !to) {
-    reply.code(400).send({ error: "Bad request" });
-    return;
-  }
-  const messages = await Message.find({
-    message: { $regex: search, $options: "i" },
-    from,
-    to,
-  }).sort({ timestamp: 1 });
-  console.log(messages);
-  const stripped = messages.map((message) => ({
-    message: message.message,
-    from: message.from,
-    to: message.to,
-    timestamp: message.timestamp,
-    id: message._id,
-  }));
-
-  reply.send({ messages: stripped });
 }
 
 // TODO: add auth
@@ -70,6 +44,6 @@ export async function postMessage(
   const messageBody: IMessage = { message, from, to, timestamp };
   const newMessage = new Message(messageBody);
   await newMessage.save();
-  GlobalUserStateHandler.updateUserWithNewMessage(to, messageBody);
-  reply.send({ message: messageBody });
+  GlobalUserStateHandler.updateUserWithNewMessage(to, newMessage);
+  reply.send({ message: newMessage });
 }

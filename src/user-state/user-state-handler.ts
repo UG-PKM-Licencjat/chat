@@ -1,3 +1,4 @@
+import { Types } from "mongoose";
 import { IMessage } from "../db/db.types.js";
 import { Id, UserState } from "./user-state-handler.types.js";
 
@@ -12,7 +13,10 @@ class UserStateHandler {
     delete this.userCache[id];
   }
 
-  updateUserWithNewMessage(to: Id, message: IMessage) {
+  updateUserWithNewMessage(
+    to: Id,
+    message: IMessage & { _id: Types.ObjectId }
+  ) {
     const parsedMessage = JSON.stringify(message);
     if (this.checkIfUserExsists(to))
       this.userCache[to].socket.send(parsedMessage);
