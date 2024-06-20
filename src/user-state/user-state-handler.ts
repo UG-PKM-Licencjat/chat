@@ -14,7 +14,8 @@ class UserStateHandler {
 
   updateUserWithNewMessage(to: Id, message: IMessage) {
     const parsedMessage = JSON.stringify(message);
-    this.userCache[to].socket.send(parsedMessage);
+    if (this.checkIfUserExsists(to))
+      this.userCache[to].socket.send(parsedMessage);
   }
 
   checkIfUserExsists(id: Id): boolean {
