@@ -11,6 +11,10 @@ type MessageGetRequest = FastifyRequest<{
   Querystring: { search: string; from: string; to: string };
 }>;
 
+type SampleMessagesRequest = FastifyRequest<{
+  Querystring: { user: string };
+}>;
+
 // TODO: add pagination and auth
 export async function getMessages(
   request: MessagesGetRequest,
@@ -28,6 +32,48 @@ export async function getMessages(
     ],
   }).sort({ timestamp: 1 });
   reply.send({ messages });
+}
+
+// TODO: add auth
+export async function getSampleMessages(
+  request: SampleMessagesRequest,
+  reply: FastifyReply
+) {
+  const { user } = request.query;
+
+  const messages = await Message.aggregate([
+    {
+      $match: {
+        $or: [{ from: user }, { to: user }],
+      },
+    },
+    {
+      $sort: { timestamp: -1 },
+    },
+    {
+      $group: {
+        _id: {
+          $cond: {
+            if: { $eq: ["$from", user] },
+            then: "$to",
+            else: "$from",
+          },
+        },
+        newestMessage: { $first: "$$ROOT" },
+      },
+    },
+    {
+      $project: {
+        _id: 0,
+        message: "$newestMessage.message",
+        timestamp: "$newestMessage.timestamp",
+        from: "$newestMessage.from",
+        to: "$newestMessage.to",
+      },
+    },
+  ]);
+
+  reply.send({ userMessages: messages });
 }
 
 // TODO: add auth
