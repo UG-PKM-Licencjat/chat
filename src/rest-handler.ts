@@ -73,7 +73,7 @@ export async function getSampleMessages(
     },
   ]);
 
-  reply.send({ userMessages: messages });
+  reply.send(messages);
 }
 
 // TODO: add auth
