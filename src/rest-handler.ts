@@ -2,6 +2,7 @@ import { FastifyReply, FastifyRequest } from "fastify";
 import { Message } from "./db/message.js";
 import { GlobalUserStateHandler } from "./user-state/user-state-handler.js";
 import { IMessage } from "./db/db.types.js";
+import { verifyGoogleToken } from "./auth.js";
 
 type MessagesGetRequest = FastifyRequest<{
   Querystring: { userA: string; userB: string };
@@ -17,10 +18,29 @@ export async function getMessages(
   reply: FastifyReply
 ) {
   const { userA, userB } = request.query;
+  const { Authorization } = request.headers;
+
+  if (!Authorization || Array.isArray(Authorization)) {
+    reply.code(401).send({ error: "Unauthorized" });
+    return;
+  }
+
+  const userId = await verifyGoogleToken(Authorization);
+  if (!userId) {
+    reply.code(401).send({ error: "Invalid or expired token" });
+    return;
+  }
+
   if (!userA || !userB) {
     reply.code(400).send({ error: "Bad request" });
     return;
   }
+
+  if (userId !== userA || userId !== userB) {
+    reply.code(401).send({ error: "Unauthorized" });
+    return;
+  }
+
   const messages = await Message.find({
     $or: [
       { from: userA, to: userB },
