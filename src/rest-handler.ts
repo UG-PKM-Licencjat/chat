@@ -7,10 +7,6 @@ type MessagesGetRequest = FastifyRequest<{
   Querystring: { userA: string; userB: string };
 }>;
 
-type MessageGetRequest = FastifyRequest<{
-  Querystring: { search: string; from: string; to: string };
-}>;
-
 type SampleMessagesRequest = FastifyRequest<{
   Querystring: { user: string };
 }>;
