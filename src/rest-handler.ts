@@ -2,7 +2,8 @@ import { FastifyReply, FastifyRequest } from "fastify";
 import { Message } from "./db/message.js";
 import { GlobalUserStateHandler } from "./user-state/user-state-handler.js";
 import { IMessage } from "./db/db.types.js";
-import { verifyGoogleToken } from "./auth.js";
+import { authenticate } from "./auth.js";
+import { OAuth2Client } from "google-auth-library";
 
 type MessagesGetRequest = FastifyRequest<{
   Querystring: { userA: string; userB: string };
@@ -12,32 +13,24 @@ type SampleMessagesRequest = FastifyRequest<{
   Querystring: { user: string };
 }>;
 
-// TODO: add pagination and auth
+//TODO cut the subs from the final result
+// TODO: add pagination
 export async function getMessages(
   request: MessagesGetRequest,
   reply: FastifyReply
 ) {
   const { userA, userB } = request.query;
-  const { Authorization } = request.headers;
+  const authorization = request.headers["authorization"];
 
-  if (!Authorization || Array.isArray(Authorization)) {
+  const userSub = await authenticate(authorization);
+
+  if (!userSub) {
     reply.code(401).send({ error: "Unauthorized" });
-    return;
-  }
-
-  const userId = await verifyGoogleToken(Authorization);
-  if (!userId) {
-    reply.code(401).send({ error: "Invalid or expired token" });
     return;
   }
 
   if (!userA || !userB) {
     reply.code(400).send({ error: "Bad request" });
-    return;
-  }
-
-  if (userId !== userA || userId !== userB) {
-    reply.code(401).send({ error: "Unauthorized" });
     return;
   }
 
@@ -47,6 +40,16 @@ export async function getMessages(
       { from: userB, to: userA },
     ],
   }).sort({ timestamp: 1 });
+
+  if (
+    messages.length > 0 &&
+    messages[0].toSub != userSub &&
+    messages[0].fromSub != userSub
+  ) {
+    reply.code(401).send({ error: "Unauthorized" });
+    return;
+  }
+
   reply.send({ messages });
 }
 
@@ -92,18 +95,43 @@ export async function getSampleMessages(
   reply.send(messages);
 }
 
-// TODO: add auth
 export async function postMessage(
   request: FastifyRequest<{
-    Body: { message: string; from: string; to: string };
+    Body: {
+      message: string;
+      from: string;
+      to: string;
+      fromSub: string;
+      toSub: string;
+    };
   }>,
   reply: FastifyReply
 ) {
-  const message = request.body.message;
-  const from = request.body.from;
-  const to = request.body.to;
+  const authorization = request.headers["authorization"];
+
+  const userSub = await authenticate(authorization);
+
+  if (!userSub) {
+    reply.code(401).send({ error: "Unauthorized" });
+    return;
+  }
+
+  const { message, from, to, fromSub, toSub } = request.body;
+
+  if (userSub !== fromSub && userSub !== toSub) {
+    reply.code(401).send({ error: "Unauthorized" });
+    return;
+  }
+
   const timestamp = new Date().toISOString();
-  const messageBody: IMessage = { message, from, to, timestamp };
+  const messageBody: IMessage = {
+    message,
+    from,
+    to,
+    timestamp,
+    fromSub,
+    toSub,
+  };
   const newMessage = new Message(messageBody);
   await newMessage.save();
   GlobalUserStateHandler.updateUserWithNewMessage(to, newMessage);

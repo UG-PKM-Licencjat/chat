@@ -4,6 +4,8 @@ import { IMessage } from "./db.types.js";
 const messageSchema = new mongoose.Schema<IMessage>({
   from: { type: String, required: true },
   to: { type: String, required: true },
+  fromSub: { type: String, required: true },
+  toSub: { type: String, required: true },
   timestamp: { type: String, required: true },
   message: { type: String, required: true },
 });
