@@ -9,7 +9,7 @@ type MessagesGetRequest = FastifyRequest<{
 }>;
 
 type SampleMessagesRequest = FastifyRequest<{
-  Querystring: { user: string };
+  // Querystring: { user: string };
 }>;
 
 //TODO cut the subs from the final result
