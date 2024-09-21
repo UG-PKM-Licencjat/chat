@@ -49,7 +49,7 @@ export async function getMessages(
     return;
   }
 
-  reply.send({ messages });
+  reply.send(messages);
 }
 
 export async function getSampleMessages(
