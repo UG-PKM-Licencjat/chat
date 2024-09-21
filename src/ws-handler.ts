@@ -1,8 +1,12 @@
 import { SocketStream } from "@fastify/websocket";
 import { FastifyRequest } from "fastify";
 import { GlobalUserStateHandler } from "./user-state/user-state-handler.js";
+import { authenticate } from "./auth.js";
 
-export function handleWs(connection: SocketStream, request: FastifyRequest) {
+export async function handleWs(
+  connection: SocketStream,
+  request: FastifyRequest
+) {
   const socket = connection.socket;
   const { id, token } = request.query as Record<string, string>; // TODO: Name of variable after adding auth
 
@@ -11,7 +15,10 @@ export function handleWs(connection: SocketStream, request: FastifyRequest) {
     socket.close(4001, "Bad request");
     return;
   }
-  if (!token) {
+
+  const userSub = await authenticate(token);
+
+  if (!userSub) {
     console.log("Missing token, closing connection");
     socket.close(4001, "Unauthorized");
     return;

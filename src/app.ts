@@ -33,7 +33,7 @@ server.register(fastifyWebsocket, {
 server.register(routes);
 
 const port = process.env.PORT ? parseInt(process.env.PORT) : 8080;
-const host = process.env.HOST ? process.env.HOST : "0.0.0.0";
+const host = "127.0.0.1"; //process.env.HOST ? process.env.HOST : "127.0.0.1"; //"0.0.0.0";
 
 server.listen({ port: port, host: host }, (err, address) => {
   if (err) {

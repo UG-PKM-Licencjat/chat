@@ -3,7 +3,6 @@ import { Message } from "./db/message.js";
 import { GlobalUserStateHandler } from "./user-state/user-state-handler.js";
 import { IMessage } from "./db/db.types.js";
 import { authenticate } from "./auth.js";
-import { OAuth2Client } from "google-auth-library";
 
 type MessagesGetRequest = FastifyRequest<{
   Querystring: { userA: string; userB: string };
@@ -53,17 +52,23 @@ export async function getMessages(
   reply.send({ messages });
 }
 
-// TODO: add auth
 export async function getSampleMessages(
   request: SampleMessagesRequest,
   reply: FastifyReply
 ) {
-  const { user } = request.query;
+  const authorization = request.headers["authorization"];
+
+  const userSub = await authenticate(authorization);
+
+  if (!userSub) {
+    reply.code(401).send({ error: "Unauthorized" });
+    return;
+  }
 
   const messages = await Message.aggregate([
     {
       $match: {
-        $or: [{ from: user }, { to: user }],
+        $or: [{ fromSub: userSub }, { toSub: userSub }],
       },
     },
     {
@@ -73,9 +78,9 @@ export async function getSampleMessages(
       $group: {
         _id: {
           $cond: {
-            if: { $eq: ["$from", user] },
-            then: "$to",
-            else: "$from",
+            if: { $eq: ["$fromSub", userSub] },
+            then: "$toSub",
+            else: "$fromSub",
           },
         },
         newestMessage: { $first: "$$ROOT" },
@@ -131,9 +136,10 @@ export async function postMessage(
     timestamp,
     fromSub,
     toSub,
+    read: false,
   };
   const newMessage = new Message(messageBody);
   await newMessage.save();
   GlobalUserStateHandler.updateUserWithNewMessage(to, newMessage);
-  reply.send({ message: newMessage });
+  reply.send({ message, from, to, timestamp });
 }

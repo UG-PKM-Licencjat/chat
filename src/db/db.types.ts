@@ -5,4 +5,5 @@ export interface IMessage {
   toSub: string;
   timestamp: string;
   message: string;
+  read?: boolean;
 }
