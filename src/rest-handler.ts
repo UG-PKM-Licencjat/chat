@@ -141,5 +141,5 @@ export async function postMessage(
   const newMessage = new Message(messageBody);
   await newMessage.save();
   GlobalUserStateHandler.updateUserWithNewMessage(to, newMessage);
-  reply.send({ message, from, to, timestamp });
+  reply.send(newMessage);
 }
