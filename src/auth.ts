@@ -1,32 +1,25 @@
-import https from "https";
+import { OAuth2Client } from "google-auth-library";
 
-export async function verifyGoogleToken(token: string): Promise<string | null> {
-  const tokenInfoUrl = `https://oauth2.googleapis.com/tokeninfo?id_token=${token}`;
+const client = new OAuth2Client();
 
-  return new Promise((resolve, reject) => {
-    https
-      .get(tokenInfoUrl, (resp) => {
-        let data = "";
+export async function authenticate(
+  token: string | undefined
+): Promise<string | null> {
+  if (!token) return null;
 
-        resp.on("data", (chunk) => {
-          data += chunk;
-        });
+  token = token.split(" ")[1]; // Cut bearer off
 
-        resp.on("end", () => {
-          try {
-            const tokenInfo = JSON.parse(data);
-            const { sub } = tokenInfo;
-            // TODO Validate fields if needed
-            resolve(sub);
-          } catch (error) {
-            console.error("Error parsing token info:", error);
-            resolve(null);
-          }
-        });
-      })
-      .on("error", (err) => {
-        console.error("Error verifying token:", err.message);
-        resolve(null);
-      });
+  const ticket = await client.verifyIdToken({
+    idToken: token,
+    audience: process.env.GOOGLE_CLIENT_ID,
   });
+
+  const payload = ticket.getPayload();
+
+  if (!payload) return null;
+
+  if (payload.iss != "https://accounts.google.com") return null;
+  if (Math.floor(new Date().getTime() / 1000) > payload.exp) return null;
+
+  return payload.sub;
 }
