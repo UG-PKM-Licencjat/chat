@@ -12,8 +12,6 @@ type SampleMessagesRequest = FastifyRequest<{
   // Querystring: { user: string };
 }>;
 
-//TODO cut the subs from the final result
-// TODO: add pagination
 export async function getMessages(
   request: MessagesGetRequest,
   reply: FastifyReply
@@ -142,4 +140,37 @@ export async function postMessage(
   await newMessage.save();
   GlobalUserStateHandler.updateUserWithNewMessage(to, newMessage);
   reply.send(newMessage);
+}
+
+export async function readConversation(
+  request: FastifyRequest<{
+    Body: { userFrom: string; userTo: string };
+  }>,
+  reply: FastifyReply
+) {
+  const authorization = request.headers["authorization"];
+
+  const userSub = await authenticate(authorization);
+
+  if (!userSub) {
+    reply.code(401).send({ error: "Unauthorized" });
+    return;
+  }
+
+  const { userFrom, userTo } = request.body;
+
+  const message = await Message.findOne({ to: userTo });
+
+  if (message && message.toSub !== userSub) {
+    reply.code(401).send({ error: "Unauthorized" });
+    return;
+  }
+
+  // not checking if happend to speed up the process
+  void Message.updateMany(
+    { from: userFrom, to: userTo, read: false },
+    { read: true }
+  );
+
+  reply.send("Messages read");
 }
