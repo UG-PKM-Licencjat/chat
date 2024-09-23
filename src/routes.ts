@@ -12,7 +12,7 @@ async function routes(fastify: FastifyInstance) {
   fastify.get("/messages", getMessages); //
   fastify.get("/messages/sample", getSampleMessages); // if last message is not read then all messages are not read
   fastify.post("/messages", postMessage);
-  fastify.post("message/readConversation", readConversation);
+  fastify.post("/message/readConversation", readConversation);
 }
 
 export default routes;
