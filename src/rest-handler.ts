@@ -167,7 +167,7 @@ export async function readConversation(
     return;
   }
 
-  // not checking if happend to speed up the process -- debug check
+  // not checking if happend to speed up the process -- debug check -- it was needed
   await Message.updateMany(
     { from: userFrom, to: userTo, read: false },
     { $set: {read: true} }
