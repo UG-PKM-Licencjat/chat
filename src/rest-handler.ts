@@ -170,7 +170,7 @@ export async function readConversation(
   // not checking if happend to speed up the process
   void Message.updateMany(
     { from: userFrom, to: userTo, read: false },
-    { read: true }
+    { "$set": {read: true} }
   );
 
   reply.send("Messages read");
