@@ -91,6 +91,7 @@ export async function getSampleMessages(
         timestamp: "$newestMessage.timestamp",
         from: "$newestMessage.from",
         to: "$newestMessage.to",
+        read: "$newestMessage.read"
       },
     },
   ]);
