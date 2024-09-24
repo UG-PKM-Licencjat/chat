@@ -167,8 +167,8 @@ export async function readConversation(
     return;
   }
 
-  // not checking if happend to speed up the process
-  void Message.updateMany(
+  // not checking if happend to speed up the process -- debug check
+  await Message.updateMany(
     { from: userFrom, to: userTo, read: false },
     { $set: {read: true} }
   );
