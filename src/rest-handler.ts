@@ -5,7 +5,7 @@ import { IMessage } from "./db/db.types.js";
 import { authenticate } from "./auth.js";
 
 type MessagesGetRequest = FastifyRequest<{
-  Querystring: { userA: string; userB: string };
+  Querystring: { userA: string; userB: string; skip: number; limit: number };
 }>;
 
 type SampleMessagesRequest = FastifyRequest<{
@@ -16,7 +16,7 @@ export async function getMessages(
   request: MessagesGetRequest,
   reply: FastifyReply
 ) {
-  const { userA, userB } = request.query;
+  const { userA, userB, skip, limit } = request.query;
   const authorization = request.headers["authorization"];
 
   const userSub = await authenticate(authorization);
@@ -31,12 +31,21 @@ export async function getMessages(
     return;
   }
 
+  // Sprawdzenie limitu (opcjonalne: maksymalny limit)
+  const MAX_LIMIT = 30;
+  if (limit <= 0 || limit > MAX_LIMIT) {
+    return reply.code(400).send({ error: "Invalid limit value" });
+  }
+
   const messages = await Message.find({
     $or: [
       { from: userA, to: userB },
       { from: userB, to: userA },
     ],
-  }).sort({ timestamp: 1 });
+  })
+    .sort({ timestamp: 1 })
+    .skip(skip)
+    .limit(limit);
 
   if (
     messages.length > 0 &&
@@ -91,7 +100,7 @@ export async function getSampleMessages(
         timestamp: "$newestMessage.timestamp",
         from: "$newestMessage.from",
         to: "$newestMessage.to",
-        read: "$newestMessage.read"
+        read: "$newestMessage.read",
       },
     },
   ]);
@@ -170,7 +179,7 @@ export async function readConversation(
   // not checking if happend to speed up the process -- debug check -- it was needed
   await Message.updateMany(
     { from: userFrom, to: userTo, read: false },
-    { $set: {read: true} }
+    { $set: { read: true } }
   );
 
   reply.send("Messages read");
