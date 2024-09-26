@@ -43,7 +43,7 @@ export async function getMessages(
       { from: userB, to: userA },
     ],
   })
-    .sort({ timestamp: 1 })
+    .sort({ timestamp: -1 })
     .skip(skip)
     .limit(limit);
 
